@@ -1,0 +1,37 @@
+# ─── Identity / naming ───────────────────────────────────────────────────────
+# Everything is named "${customer_name}-dbx-${environment}-<suffix>".
+customer_name = "customer"
+environment   = "prod"
+
+# ─── AWS ─────────────────────────────────────────────────────────────────────
+aws_region  = "ap-southeast-3"
+aws_profile = "customer-prod"
+
+# ─── Networking (prod) ───────────────────────────────────────────────────────
+# Address space for the prod VPC only. The dev VPC is configured separately in
+# ../../dev/aws-foundation/terraform.tfvars. See "CIDR allocation" in the repo
+# root README for the full plan and why the ranges must not overlap.
+#
+# 10.174.0.0/16 = 10.174.0.0 - 10.174.255.255 (65,536 addresses)
+vpc_cidr = "10.174.0.0/16"
+
+# Public subnets host the NAT gateway. 256 addresses each.
+public_subnet_cidrs = ["10.174.0.0/24", "10.174.1.0/24"]
+
+# Private subnets host Databricks compute. 4,096 addresses each, which caps how
+# many cluster nodes can run at once. Databricks requires at least two subnets
+# in different AZs.
+private_subnet_cidrs = ["10.174.16.0/20", "10.174.32.0/20"]
+
+# One AZ per subnet, in the same order as the lists above.
+availability_zones = ["ap-southeast-3a", "ap-southeast-3b"]
+
+# ─── Tagging ─────────────────────────────────────────────────────────────────
+# Environment and ManagedBy are added automatically.
+common_tags = {
+  Project            = "databricks"
+  Platform           = "databricks"
+  Owner              = "data-team"
+  BusinessUnit       = "CUSTOMER"
+  DataClassification = "internal"
+}

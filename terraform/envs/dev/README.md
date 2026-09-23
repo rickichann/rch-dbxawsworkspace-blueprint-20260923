@@ -1,0 +1,183 @@
+# Databricks on AWS — `dev` environment
+
+> Template version 2.0.0
+
+Deploys a Databricks workspace on AWS with a customer-managed VPC plus a Unity Catalog,
+for the **dev** environment. The `prod` environment is an identical copy under
+`terraform/envs/prod/` with its own state bucket and CIDR range.
+
+Every resource is named `{customer_name}-dbx-{environment}-<suffix>`, so with
+`customer_name = "acme"` and `environment = "dev"` you get `acme-dbx-dev-vpc`,
+`acme-dbx-dev-root-bucket`, `acme-dbx-dev-catalog`, and so on.
+
+## Layers
+
+```
+terraform/envs/dev/
+├── create-state-bucket.sh          # S3 bucket for Terraform remote state
+├── aws-foundation/                 # Layer 1: VPC, subnets, NAT, SG, DBFS root bucket
+├── databricks-workspace/           # Layer 2: cross-account IAM, MWS workspace
+└── databricks-catalog/             # Layer 3: catalog bucket, storage credential,
+                                    #          external location, catalog, schemas, grants
+```
+
+Each layer has its own state file and is applied in order. Layer 2 consumes outputs
+from layer 1, layer 3 consumes outputs from layer 2.
+
+## Prerequisites
+
+- Terraform >= 1.5.0
+- AWS CLI with a named profile for the target account
+- A Databricks account service principal with the **Account Admin** role (OAuth client ID + secret)
+
+## What you edit
+
+### 1. Naming and account, in all three `terraform.tfvars`
+
+| Variable        | Purpose                             | Example            |
+|-----------------|-------------------------------------|--------------------|
+| `customer_name` | Prefix for every resource name      | `acme`             |
+| `environment`   | `dev` here, `prod` in the prod folder| `dev`             |
+| `aws_region`    | Region to deploy in                 | `ap-southeast-3`   |
+| `aws_profile`   | AWS CLI profile for the account     | `acme-dev`        |
+| `common_tags`   | Tags on every resource              | see file           |
+
+`customer_name` and `environment` must be identical across the three layers — they are
+what keep the resource names consistent.
+
+### 2. Backend block in each layer's `providers.tf`
+
+Backend settings cannot use variables, so they are the one place you edit HCL directly:
+
+```hcl
+backend "s3" {
+  bucket  = "acme-dbx-dev-terraform-state"
+  key     = "dev/aws-foundation/terraform.tfstate"   # or databricks-workspace / databricks-catalog
+  region  = "ap-southeast-3"
+  profile = "acme-dev"
+}
+```
+
+### 3. `create-state-bucket.sh` header
+
+Set `CUSTOMER_NAME`, `ENVIRONMENT`, `REGION`, `PROFILE`. The bucket name is derived as
+`{CUSTOMER_NAME}-dbx-{ENVIRONMENT}-terraform-state`.
+
+### 4. Network ranges, in `aws-foundation/terraform.tfvars`
+
+`vpc_cidr`, `public_subnet_cidrs`, `private_subnet_cidrs`, `availability_zones`.
+Defaults: prod `10.174.0.0/16`, dev `10.175.0.0/16`. Keep them non-overlapping if you
+ever want to peer the two, and make sure the AZs belong to `aws_region`.
+
+### 5. Cross-layer values
+
+| File                                   | Variable                                             | Source                     |
+|----------------------------------------|------------------------------------------------------|----------------------------|
+| `databricks-workspace/terraform.tfvars`| `databricks_account_id`                               | accounts.cloud.databricks.com |
+| `databricks-workspace/terraform.tfvars`| `vpc_id`, `private_subnet_ids`, `security_group_id`   | `aws-foundation` outputs   |
+| `databricks-workspace/terraform.tfvars`| `root_bucket_name`                                    | leave `""` to auto-derive  |
+| `databricks-catalog/terraform.tfvars`  | `databricks_account_id`                               | same as above              |
+| `databricks-catalog/terraform.tfvars`  | `databricks_workspace_url`, `databricks_workspace_id` | `databricks-workspace` outputs |
+| `databricks-catalog/terraform.tfvars`  | `catalog_schemas`                                     | your choice                |
+
+### 6. Credentials — environment variables only, never in files
+
+**PowerShell:**
+```powershell
+$env:TF_VAR_databricks_client_id     = "your-service-principal-client-id"
+$env:TF_VAR_databricks_client_secret = "your-service-principal-client-secret"
+```
+
+**Bash:**
+```bash
+export TF_VAR_databricks_client_id="your-service-principal-client-id"
+export TF_VAR_databricks_client_secret="your-service-principal-client-secret"
+```
+
+To create them: accounts.cloud.databricks.com → **User management** → **Service principals** →
+select or create one with **Account Admin** → **Secrets** → **Generate secret**. The secret is
+shown once.
+
+## Deployment
+
+### Step 0 — state bucket
+
+```bash
+bash terraform/envs/dev/create-state-bucket.sh
+```
+
+The script is idempotent; re-running it only re-applies versioning, public-access block,
+encryption, and tags.
+
+### Step 1 — AWS foundation
+
+```powershell
+cd terraform\envs\dev\aws-foundation
+terraform init
+terraform plan
+terraform apply
+terraform output
+```
+
+Note `vpc_id`, `private_subnet_ids`, `security_group_id`.
+
+### Step 2 — Databricks workspace
+
+1. Paste the Step 1 outputs into `databricks-workspace/terraform.tfvars`
+2. Export the Databricks credentials
+3. Apply:
+
+```powershell
+cd terraform\envs\dev\databricks-workspace
+terraform init
+terraform plan
+terraform apply
+terraform output
+```
+
+### Step 3 — Unity Catalog
+
+1. Paste `databricks_workspace_url` and `databricks_workspace_id` into `databricks-catalog/terraform.tfvars`
+2. Export the Databricks credentials (same as Step 2)
+3. Apply:
+
+```powershell
+cd terraform\envs\dev\databricks-catalog
+terraform init
+terraform plan
+terraform apply
+```
+
+This creates the catalog data bucket, the IAM role Databricks assumes to reach it, a storage
+credential, an external location, the catalog itself (bound to the workspace, granted to
+`account users`), and the schemas listed in `catalog_schemas`.
+
+### Step 4 — verify
+
+```powershell
+cd terraform\envs\dev\databricks-workspace
+terraform output databricks_workspace_url
+```
+
+Open the URL and check Catalog Explorer for `{customer_name}-dbx-dev-catalog` and its schemas.
+
+## Notes
+
+- **IAM propagation**: layers 2 and 3 include a 20s `time_sleep` for IAM eventual consistency. If you still hit role assumption errors, wait a minute and re-apply.
+- **S3 bucket names are global**: if `{customer_name}-dbx-{environment}-root-bucket` is taken, pick a different `customer_name`.
+- **State locking is not enabled**: only one person should apply at a time. Add a DynamoDB lock table if you need it.
+- **Secrets**: `databricks_client_id` / `databricks_client_secret` stay in environment variables. `.gitignore` also excludes `*.auto.tfvars` and `output.txt`.
+- **Catalog visibility**: the catalog is owned by the service principal that created it; grants for `account users` are applied so workspace users can read it.
+
+## Teardown
+
+Reverse order:
+
+```powershell
+cd terraform\envs\dev\databricks-catalog   ; terraform destroy
+cd ..\databricks-workspace                  ; terraform destroy
+cd ..\aws-foundation                        ; terraform destroy
+
+# optionally, the state bucket
+aws s3 rb s3://customer-dbx-dev-terraform-state --force --profile customer-dev
+```

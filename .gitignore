@@ -1,0 +1,49 @@
+# ─── Terraform ─────────────────────────────────────────────────────────────────
+
+# State files (contain sensitive resource details)
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+
+# Terraform working directory (cached providers, modules)
+.terraform/
+
+# Lock file (regenerated on terraform init)
+.terraform.lock.hcl
+
+# Plan files
+*.tfplan
+
+# Crash logs
+crash.log
+crash.*.log
+
+# ─── Sensitive files ──────────────────────────────────────────────────────────
+
+# Override files (may contain secrets)
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform output files (contain resource IDs)
+output.txt
+
+# ─── OS / IDE ─────────────────────────────────────────────────────────────────
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# Kiro
+.kiro/
