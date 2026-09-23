@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
-# Everything is named "${customer_name}-dbx-${environment}-<suffix>".
-customer_name = "customer"
-environment   = "dev"
+# Everything is named "${company_name}-dbx-${environment}-<suffix>".
+company_name = "company"
+environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "customer-dev"
+aws_profile = "company-dev"
 
 # ─── Networking (dev) ────────────────────────────────────────────────────────
 # Address space for the dev VPC only. The prod VPC is configured separately in
@@ -32,6 +32,6 @@ common_tags = {
   Project            = "databricks"
   Platform           = "databricks"
   Owner              = "data-team"
-  BusinessUnit       = "CUSTOMER"
+  BusinessUnit       = "COMPANY"
   DataClassification = "internal"
 }

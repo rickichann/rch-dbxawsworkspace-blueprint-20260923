@@ -1,5 +1,5 @@
 output "project_name" {
-  description = "Resource name prefix used by this layer. Pass the same customer_name/environment to the other layers."
+  description = "Resource name prefix used by this layer. Pass the same company_name/environment to the other layers."
   value       = local.name
 }
 

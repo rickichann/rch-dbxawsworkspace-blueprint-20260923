@@ -1,5 +1,5 @@
 locals {
-  name = "${var.customer_name}-dbx-${var.environment}"
+  name = "${var.company_name}-dbx-${var.environment}"
 
   tags = merge(var.common_tags, {
     Environment = var.environment
@@ -7,7 +7,7 @@ locals {
   })
 
   # Fall back to the name aws-foundation gives the bucket
-  root_bucket = var.root_bucket_name != "" ? var.root_bucket_name : "${var.customer_name}-dbx-${var.environment}-root-bucket"
+  root_bucket = var.root_bucket_name != "" ? var.root_bucket_name : "${var.company_name}-dbx-${var.environment}-root-bucket"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

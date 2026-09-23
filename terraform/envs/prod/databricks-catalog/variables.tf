@@ -1,14 +1,14 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match the values used in aws-foundation and databricks-workspace.
 
-variable "customer_name" {
-  description = "Customer / org short name used as the prefix for every resource name."
+variable "company_name" {
+  description = "Company / org short name used as the prefix for every resource name."
   type        = string
-  default     = "customer"
+  default     = "company"
 
   validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$", var.customer_name))
-    error_message = "customer_name must be lowercase alphanumeric with hyphens (S3-bucket safe)."
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$", var.company_name))
+    error_message = "company_name must be lowercase alphanumeric with hyphens (S3-bucket safe)."
   }
 }
 
@@ -29,7 +29,7 @@ variable "aws_region" {
 variable "aws_profile" {
   description = "AWS CLI profile for the target account"
   type        = string
-  default     = "customer-prod"
+  default     = "company-prod"
 }
 
 # ─── Databricks ──────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ variable "common_tags" {
     Project            = "databricks"
     Platform           = "databricks"
     Owner              = "data-team"
-    BusinessUnit       = "CUSTOMER"
+    BusinessUnit       = "COMPANY"
     DataClassification = "internal"
   }
 }

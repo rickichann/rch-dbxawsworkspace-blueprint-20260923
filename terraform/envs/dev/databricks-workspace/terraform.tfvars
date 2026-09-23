@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match aws-foundation/terraform.tfvars.
-customer_name = "customer"
-environment   = "dev"
+company_name = "company"
+environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "customer-dev"
+aws_profile = "company-dev"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 # Find your account ID at https://accounts.cloud.databricks.com
@@ -21,7 +21,7 @@ vpc_id             = "vpc-REPLACE_ME"
 private_subnet_ids = ["subnet-REPLACE_ME_A", "subnet-REPLACE_ME_B"]
 security_group_id  = "sg-REPLACE_ME"
 
-# Leave empty to derive "{customer_name}-dbx-{environment}-root-bucket"
+# Leave empty to derive "{company_name}-dbx-{environment}-root-bucket"
 root_bucket_name = ""
 
 # ─── Tagging ─────────────────────────────────────────────────────────────────
@@ -29,6 +29,6 @@ common_tags = {
   Project            = "databricks"
   Platform           = "databricks"
   Owner              = "data-team"
-  BusinessUnit       = "CUSTOMER"
+  BusinessUnit       = "COMPANY"
   DataClassification = "internal"
 }

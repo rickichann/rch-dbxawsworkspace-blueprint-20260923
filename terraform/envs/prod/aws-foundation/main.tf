@@ -1,5 +1,5 @@
 locals {
-  name = "${var.customer_name}-dbx-${var.environment}"
+  name = "${var.company_name}-dbx-${var.environment}"
 
   tags = merge(var.common_tags, {
     Environment = var.environment

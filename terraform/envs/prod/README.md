@@ -6,9 +6,9 @@ Deploys a Databricks workspace on AWS with a customer-managed VPC plus a Unity C
 for the **prod** environment. The `dev` environment is an identical copy under
 `terraform/envs/dev/` with its own state bucket and CIDR range.
 
-Every resource is named `{customer_name}-dbx-{environment}-<suffix>`, so with
-`customer_name = "acme"` and `environment = "prod"` you get `acme-dbx-prod-vpc`,
-`acme-dbx-prod-root-bucket`, `acme-dbx-prod-catalog`, and so on.
+Every resource is named `{company_name}-dbx-{environment}-<suffix>`, so with
+`company_name = "company"` and `environment = "prod"` you get `company-dbx-prod-vpc`,
+`company-dbx-prod-root-bucket`, `company-dbx-prod-catalog`, and so on.
 
 ## Layers
 
@@ -34,15 +34,15 @@ from layer 1, layer 3 consumes outputs from layer 2.
 
 ### 1. Naming and account, in all three `terraform.tfvars`
 
-| Variable        | Purpose                             | Example            |
-|-----------------|-------------------------------------|--------------------|
-| `customer_name` | Prefix for every resource name      | `acme`             |
-| `environment`   | `prod` here, `dev` in the dev folder| `prod`             |
-| `aws_region`    | Region to deploy in                 | `ap-southeast-3`   |
-| `aws_profile`   | AWS CLI profile for the account     | `acme-prod`        |
-| `common_tags`   | Tags on every resource              | see file           |
+| Variable       | Purpose                               | Example          |
+|----------------|---------------------------------------|------------------|
+| `company_name` | Prefix for every resource name        | `company`        |
+| `environment`  | `prod` here, `dev` in the dev folder   | `prod`           |
+| `aws_region`   | Region to deploy in                   | `ap-southeast-3` |
+| `aws_profile`  | AWS CLI profile for the account       | `company-prod`   |
+| `common_tags`  | Tags on every resource                | see file         |
 
-`customer_name` and `environment` must be identical across the three layers — they are
+`company_name` and `environment` must be identical across the three layers — they are
 what keep the resource names consistent.
 
 ### 2. Backend block in each layer's `providers.tf`
@@ -51,17 +51,17 @@ Backend settings cannot use variables, so they are the one place you edit HCL di
 
 ```hcl
 backend "s3" {
-  bucket  = "acme-dbx-prod-terraform-state"
+  bucket  = "company-dbx-prod-terraform-state"
   key     = "prod/aws-foundation/terraform.tfstate"   # or databricks-workspace / databricks-catalog
   region  = "ap-southeast-3"
-  profile = "acme-prod"
+  profile = "company-prod"
 }
 ```
 
 ### 3. `create-state-bucket.sh` header
 
-Set `CUSTOMER_NAME`, `ENVIRONMENT`, `REGION`, `PROFILE`. The bucket name is derived as
-`{CUSTOMER_NAME}-dbx-{ENVIRONMENT}-terraform-state`.
+Set `COMPANY_NAME`, `ENVIRONMENT`, `REGION`, `PROFILE`. The bucket name is derived as
+`{COMPANY_NAME}-dbx-{ENVIRONMENT}-terraform-state`.
 
 ### 4. Network ranges, in `aws-foundation/terraform.tfvars`
 
@@ -159,12 +159,12 @@ cd terraform\envs\prod\databricks-workspace
 terraform output databricks_workspace_url
 ```
 
-Open the URL and check Catalog Explorer for `{customer_name}-dbx-prod-catalog` and its schemas.
+Open the URL and check Catalog Explorer for `{company_name}-dbx-prod-catalog` and its schemas.
 
 ## Notes
 
 - **IAM propagation**: layers 2 and 3 include a 20s `time_sleep` for IAM eventual consistency. If you still hit role assumption errors, wait a minute and re-apply.
-- **S3 bucket names are global**: if `{customer_name}-dbx-{environment}-root-bucket` is taken, pick a different `customer_name`.
+- **S3 bucket names are global**: if `{company_name}-dbx-{environment}-root-bucket` is taken, pick a different `company_name`.
 - **State locking is not enabled**: only one person should apply at a time. Add a DynamoDB lock table if you need it.
 - **Secrets**: `databricks_client_id` / `databricks_client_secret` stay in environment variables. `.gitignore` also excludes `*.auto.tfvars` and `output.txt`.
 - **Catalog visibility**: the catalog is owned by the service principal that created it; grants for `account users` are applied so workspace users can read it.
@@ -179,5 +179,5 @@ cd ..\databricks-workspace                  ; terraform destroy
 cd ..\aws-foundation                        ; terraform destroy
 
 # optionally, the state bucket
-aws s3 rb s3://customer-dbx-prod-terraform-state --force --profile customer-prod
+aws s3 rb s3://company-dbx-prod-terraform-state --force --profile company-prod
 ```

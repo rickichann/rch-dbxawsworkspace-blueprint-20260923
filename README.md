@@ -4,8 +4,8 @@ Reusable Terraform template for standing up a Databricks workspace on AWS with a
 customer-managed VPC and Unity Catalog. Ships two environments, `dev` and `prod`,
 each fully independent: own state bucket, own VPC CIDR, own AWS profile.
 
-Nothing in here is customer-specific. Every name is derived from two variables,
-`customer_name` and `environment`. Placeholders use the literal string `customer`.
+Nothing in here is company-specific. Every name is derived from two variables,
+`company_name` and `environment`. Placeholders use the literal string `company`.
 
 ```
 terraform/envs/
@@ -24,20 +24,24 @@ The two environments share no state and no resources. Editing one cannot affect 
 
 ## Naming convention
 
-| Thing                | Pattern                                             | Example (`acme` / `prod`)               |
-|----------------------|-----------------------------------------------------|-----------------------------------------|
-| Resource prefix      | `{customer_name}-dbx-{environment}`                 | `acme-dbx-prod`                         |
-| DBFS root bucket     | `{prefix}-root-bucket`                              | `acme-dbx-prod-root-bucket`             |
-| Catalog data bucket  | `{prefix}-catalog-data`                             | `acme-dbx-prod-catalog-data`            |
-| Unity Catalog        | `{prefix}-catalog`                                  | `acme-dbx-prod-catalog`                 |
-| Workspace name       | `{prefix}`                                          | `acme-dbx-prod`                         |
-| State bucket         | `{customer_name}-dbx-{environment}-terraform-state` | `acme-dbx-prod-terraform-state`         |
-| State key            | `{environment}/{layer}/terraform.tfstate`           | `prod/aws-foundation/terraform.tfstate` |
+With `company_name = "company"` and `environment = "prod"`:
 
-## Using the template for a new customer
+| Thing                | Pattern                                            | Result                                  |
+|----------------------|----------------------------------------------------|-----------------------------------------|
+| Resource prefix      | `{company_name}-dbx-{environment}`                 | `company-dbx-prod`                      |
+| DBFS root bucket     | `{prefix}-root-bucket`                             | `company-dbx-prod-root-bucket`          |
+| Catalog data bucket  | `{prefix}-catalog-data`                            | `company-dbx-prod-catalog-data`         |
+| Unity Catalog        | `{prefix}-catalog`                                 | `company-dbx-prod-catalog`              |
+| Workspace name       | `{prefix}`                                         | `company-dbx-prod`                      |
+| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `company-dbx-prod-terraform-state`      |
+| State key            | `{environment}/{layer}/terraform.tfstate`          | `prod/aws-foundation/terraform.tfstate` |
+
+Replace `company` with the real short name and every resource above follows.
+
+## Using the template for a new company
 
 1. Copy this repo.
-2. Per environment, set `customer_name`, `environment`, `aws_region`, `aws_profile` in all three `terraform.tfvars`.
+2. Per environment, set `company_name`, `environment`, `aws_region`, `aws_profile` in all three `terraform.tfvars`.
 3. Per environment, update the `backend "s3"` block in all three `providers.tf`. Backends cannot read variables, so this is the one place you edit HCL directly.
 4. Per environment, update the header of `create-state-bucket.sh`.
 5. Pick non-overlapping VPC CIDRs. See [CIDR allocation](#cidr-allocation).

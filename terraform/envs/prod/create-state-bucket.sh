@@ -4,13 +4,13 @@
 set -euo pipefail
 
 # ─── EDIT ME ─────────────────────────────────────────────────────────────────
-CUSTOMER_NAME="customer"
+COMPANY_NAME="company"
 ENVIRONMENT="prod"
 REGION="ap-southeast-3"
-PROFILE="customer-prod"
+PROFILE="company-prod"
 # ─────────────────────────────────────────────────────────────────────────────
 
-BUCKET_NAME="${CUSTOMER_NAME}-dbx-${ENVIRONMENT}-terraform-state"
+BUCKET_NAME="${COMPANY_NAME}-dbx-${ENVIRONMENT}-terraform-state"
 
 if aws s3api head-bucket --bucket "${BUCKET_NAME}" --profile "${PROFILE}" 2>/dev/null; then
   echo "Bucket '${BUCKET_NAME}' already exists, skipping creation."

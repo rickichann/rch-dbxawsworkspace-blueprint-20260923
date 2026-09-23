@@ -1,7 +1,7 @@
 locals {
-  name           = "${var.customer_name}-dbx-${var.environment}"
-  catalog_name   = "${var.customer_name}-dbx-${var.environment}-catalog"
-  catalog_bucket = "${var.customer_name}-dbx-${var.environment}-catalog-data"
+  name           = "${var.company_name}-dbx-${var.environment}"
+  catalog_name   = "${var.company_name}-dbx-${var.environment}-catalog"
+  catalog_bucket = "${var.company_name}-dbx-${var.environment}-catalog-data"
 
   tags = merge(var.common_tags, {
     Environment = var.environment

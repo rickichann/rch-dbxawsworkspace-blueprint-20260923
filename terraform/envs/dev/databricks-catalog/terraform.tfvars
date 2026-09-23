@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match aws-foundation/terraform.tfvars and databricks-workspace/terraform.tfvars.
-customer_name = "customer"
-environment   = "dev"
+company_name = "company"
+environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "customer-dev"
+aws_profile = "company-dev"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 databricks_account_id = "REPLACE_WITH_DATABRICKS_ACCOUNT_ID"
@@ -29,6 +29,6 @@ common_tags = {
   Project            = "databricks"
   Platform           = "databricks"
   Owner              = "data-team"
-  BusinessUnit       = "CUSTOMER"
+  BusinessUnit       = "COMPANY"
   DataClassification = "internal"
 }
