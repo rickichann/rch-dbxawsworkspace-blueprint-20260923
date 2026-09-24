@@ -5,7 +5,7 @@ environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "company-dev"
+aws_profile = "rch"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 databricks_account_id = "REPLACE_WITH_DATABRICKS_ACCOUNT_ID"

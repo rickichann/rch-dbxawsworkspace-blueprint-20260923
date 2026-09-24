@@ -49,7 +49,7 @@ Symptom if it's missing: layer 3 fails on `databricks_storage_credential` or
 | `company_name` | Prefix for every resource name        | `company`        |
 | `environment`  | `prod` here, `dev` in the dev folder   | `prod`           |
 | `aws_region`   | Region to deploy in                   | `ap-southeast-3` |
-| `aws_profile`  | AWS CLI profile for the account       | `company-prod`   |
+| `aws_profile`  | AWS CLI profile for the account       | `rch`          |
 | `common_tags`  | Tags on every resource                | see file         |
 
 `company_name` and `environment` must be identical across the three layers — they are
@@ -64,7 +64,7 @@ backend "s3" {
   bucket  = "company-dbx-prod-terraform-state"
   key     = "prod/aws-foundation/terraform.tfstate"   # or databricks-workspace / databricks-catalog
   region  = "ap-southeast-3"
-  profile = "company-prod"
+  profile = "rch"
 }
 ```
 
@@ -189,5 +189,5 @@ cd ..\databricks-workspace                  ; terraform destroy
 cd ..\aws-foundation                        ; terraform destroy
 
 # optionally, the state bucket
-aws s3 rb s3://company-dbx-prod-terraform-state --force --profile company-prod
+aws s3 rb s3://company-dbx-prod-terraform-state --force --profile rch
 ```

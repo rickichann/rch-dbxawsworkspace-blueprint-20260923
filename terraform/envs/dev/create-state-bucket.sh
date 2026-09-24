@@ -7,7 +7,7 @@ set -euo pipefail
 COMPANY_NAME="company"
 ENVIRONMENT="dev"
 REGION="ap-southeast-3"
-PROFILE="company-dev"
+PROFILE="rch"
 # ─────────────────────────────────────────────────────────────────────────────
 
 BUCKET_NAME="${COMPANY_NAME}-dbx-${ENVIRONMENT}-terraform-state"

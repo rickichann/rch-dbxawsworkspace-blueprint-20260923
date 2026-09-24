@@ -5,7 +5,7 @@ environment  = "prod"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "company-prod"
+aws_profile = "rch"
 
 # ─── Networking (prod) ───────────────────────────────────────────────────────
 # Address space for the prod VPC only. The dev VPC is configured separately in

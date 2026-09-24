@@ -8,7 +8,7 @@ terraform {
     bucket       = "company-dbx-prod-terraform-state"
     key          = "prod/databricks-catalog/terraform.tfstate"
     region       = "ap-southeast-3"
-    profile      = "company-prod"
+    profile      = "rch"
     use_lockfile = true
   }
 

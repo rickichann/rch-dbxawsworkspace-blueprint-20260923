@@ -2,7 +2,15 @@
 
 Reusable Terraform template for standing up a Databricks workspace on AWS with a
 customer-managed VPC and Unity Catalog. Ships two environments, `dev` and `prod`,
-each fully independent: own state bucket, own VPC CIDR, own AWS profile.
+each with its own state bucket and its own VPC CIDR.
+
+This checkout is wired to the `rch` AWS CLI profile in `ap-southeast-3`, and both
+environments target that same AWS account. That is fine for a sandbox. For a real
+deployment, put dev and prod in **separate AWS accounts** with separate profiles, so a
+mistake in dev cannot reach prod — change `aws_profile` in the six `terraform.tfvars`
+and the `profile` in the six `backend "s3"` blocks. The variable defaults in
+`variables.tf` are intentionally left generic so that a missing tfvars entry fails
+loudly instead of silently picking an account.
 
 Nothing in here is company-specific. Every name is derived from two variables,
 `company_name` and `environment`. Placeholders use the literal string `company`.

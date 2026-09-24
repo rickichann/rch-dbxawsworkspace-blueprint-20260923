@@ -5,7 +5,7 @@ environment  = "prod"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-3"
-aws_profile = "company-prod"
+aws_profile = "rch"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 # Find your account ID at https://accounts.cloud.databricks.com
