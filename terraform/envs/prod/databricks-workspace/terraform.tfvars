@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match aws-foundation/terraform.tfvars.
-company_name = "rch24company"
+company_name = "yourcompany"
 environment  = "prod"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-1"
-aws_profile = "rch"
+aws_profile = "your-aws-profile"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 # Find your account ID at https://accounts.cloud.databricks.com
@@ -32,3 +32,7 @@ common_tags = {
   BusinessUnit       = "COMPANY"
   DataClassification = "internal"
 }
+
+# ─── Unity Catalog ───────────────────────────────────────────────────────────
+# Regional metastore, attached to this workspace by the layer 2 apply.
+databricks_metastore_id = "REPLACE_WITH_METASTORE_ID"

@@ -27,3 +27,8 @@ output "root_bucket_name" {
   description = "DBFS root bucket name (feed into databricks-workspace)"
   value       = aws_s3_bucket.root_bucket.bucket
 }
+
+output "s3_vpc_endpoint_id" {
+  description = "S3 gateway VPC endpoint attached to the private route table"
+  value       = aws_vpc_endpoint.s3.id
+}

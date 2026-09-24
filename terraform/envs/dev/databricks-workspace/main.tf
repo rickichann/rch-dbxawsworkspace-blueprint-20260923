@@ -108,3 +108,23 @@ resource "databricks_mws_workspaces" "this" {
   storage_configuration_id = databricks_mws_storage_configurations.this.storage_configuration_id
   network_id               = databricks_mws_networks.this.network_id
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Attach the Unity Catalog metastore
+#
+# A metastore is regional and shared across workspaces, and Databricks permits
+# only one per region per account. This template therefore attaches an existing
+# metastore rather than creating one, which would collide on any account that
+# already has it. Doing it here rather than in the catalog layer guarantees the
+# workspace has Unity Catalog enabled before that layer creates a catalog.
+#
+# Set databricks_metastore_id to "" to skip and attach manually instead.
+# ─────────────────────────────────────────────────────────────────────────────
+
+resource "databricks_metastore_assignment" "this" {
+  count    = var.databricks_metastore_id != "" ? 1 : 0
+  provider = databricks.mws
+
+  workspace_id = databricks_mws_workspaces.this.workspace_id
+  metastore_id = var.databricks_metastore_id
+}

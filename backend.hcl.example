@@ -1,0 +1,10 @@
+# Copy to backend.hcl and fill in. backend.hcl is gitignored.
+# Then initialise the layer with:
+#   terraform init -backend-config=backend.hcl
+#
+# The state key itself stays in providers.tf, since it is structural rather than
+# deployment specific.
+
+bucket  = "yourcompany-dbx-prod-terraform-state"
+region  = "ap-southeast-1"
+profile = "your-aws-profile"

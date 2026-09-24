@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Everything is named "${company_name}-dbx-${environment}-<suffix>".
-company_name = "rch24company"
+company_name = "yourcompany"
 environment  = "prod"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-1"
-aws_profile = "rch"
+aws_profile = "your-aws-profile"
 
 # ─── Networking (prod) ───────────────────────────────────────────────────────
 # Address space for the prod VPC only. The dev VPC is configured separately in

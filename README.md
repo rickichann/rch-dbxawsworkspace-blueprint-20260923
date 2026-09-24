@@ -4,7 +4,7 @@ Reusable Terraform template for standing up a Databricks workspace on AWS with a
 customer-managed VPC and Unity Catalog. Ships two environments, `dev` and `prod`,
 each with its own state bucket and its own VPC CIDR.
 
-This checkout is wired to the `rch` AWS CLI profile in `ap-southeast-1`, and both
+This checkout is wired to the `your-aws-profile` AWS CLI profile in `ap-southeast-1`, and both
 environments target that same AWS account. That is fine for a sandbox. For a real
 deployment, put dev and prod in **separate AWS accounts** with separate profiles, so a
 mistake in dev cannot reach prod — change `aws_profile` in the six `terraform.tfvars`
@@ -12,14 +12,15 @@ and the `profile` in the six `backend "s3"` blocks. The variable defaults in
 `variables.tf` are intentionally left generic so that a missing tfvars entry fails
 loudly instead of silently picking an account.
 
-Nothing in here is company-specific. Every name is derived from two variables,
-`company_name` and `environment`. Placeholders use the literal string `company`.
+Every name is derived from two variables, `company_name` and `environment`, so
+re-pointing the whole stack at a different company is a two-value change per layer.
+This checkout has them set to `yourcompany` and `dev` / `prod`.
 
 ```
 terraform/envs/
 ├── dev/
 │   ├── create-state-bucket.sh
-│   ├── aws-foundation/          # Layer 1 - VPC, subnets, NAT, security group, DBFS root bucket
+│   ├── aws-foundation/          # Layer 1 - VPC, subnets, NAT, S3 endpoint, security group, DBFS root bucket
 │   ├── databricks-workspace/    # Layer 2 - cross-account IAM role, MWS workspace
 │   ├── databricks-catalog/      # Layer 3 - catalog bucket, storage credential,
 │   │                            #           external location, catalog, schemas, grants
@@ -32,32 +33,76 @@ The two environments share no state and no resources. Editing one cannot affect 
 
 ## Naming convention
 
-With `company_name = "rch24company"` and `environment = "prod"`:
+With `company_name = "yourcompany"` and `environment = "prod"`:
 
 | Thing                | Pattern                                            | Result                                  |
 |----------------------|----------------------------------------------------|-----------------------------------------|
-| Resource prefix      | `{company_name}-dbx-{environment}`                 | `rch24company-dbx-prod`                      |
-| DBFS root bucket     | `{prefix}-root-bucket`                             | `rch24company-dbx-prod-root-bucket`          |
-| Catalog data bucket  | `{prefix}-catalog-data`                            | `rch24company-dbx-prod-catalog-data`         |
-| Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `company_dbx_prod`                      |
-| Workspace name       | `{prefix}`                                         | `rch24company-dbx-prod`                      |
-| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `rch24company-dbx-prod-terraform-state`      |
+| Resource prefix      | `{company_name}-dbx-{environment}`                 | `yourcompany-dbx-prod`                 |
+| Public subnet, AZ 1  | `{prefix}-public-subnet-1a`                        | `yourcompany-dbx-prod-public-subnet-1a` |
+| Private subnet, AZ 1 | `{prefix}-private-subnet-1b`                       | `yourcompany-dbx-prod-private-subnet-1b` |
+| Public subnet, AZ 2  | `{prefix}-public-subnet-2a`                        | `yourcompany-dbx-prod-public-subnet-2a` |
+| Private subnet, AZ 2 | `{prefix}-private-subnet-2b`                       | `yourcompany-dbx-prod-private-subnet-2b` |
+| DBFS root bucket     | `{prefix}-root-bucket`                             | `yourcompany-dbx-prod-root-bucket`          |
+| Catalog data bucket  | `{prefix}-catalog-data`                            | `yourcompany-dbx-prod-catalog-data`         |
+| Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `yourcompany_dbx_prod`                 |
+| Workspace name       | `{prefix}`                                         | `yourcompany-dbx-prod`                      |
+| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `yourcompany-dbx-prod-terraform-state`      |
 | State key            | `{environment}/{layer}/terraform.tfstate`          | `prod/aws-foundation/terraform.tfstate` |
 
-Replace `company` with the real short name and every resource above follows.
+Change `company_name` and every resource above follows.
+
+Subnet suffixes are `<az index><tier letter>`. The number counts availability zones from
+1, following the order of `availability_zones` in the tfvars. The letter is the tier:
+`a` for public, `b` for private. Adding a third AZ yields `public-subnet-3a` and
+`private-subnet-3b`.
+
+Note the letter is the tier, not the AWS zone letter. `private-subnet-1b` sits in
+`ap-southeast-1a`, because it is the private subnet of the first AZ. Check the `Tier` tag
+or the `availability_zone` attribute if you need the physical zone.
+
+The Unity Catalog is the one exception to the hyphen convention: catalog names are SQL
+identifiers, and hyphens would force `` `yourcompany-dbx-prod` `` backticks into every
+query.
 
 ## Using the template for a new company
 
 1. Copy this repo.
 2. Per environment, set `company_name`, `environment`, `aws_region`, `aws_profile` in all three `terraform.tfvars`.
-3. Per environment, update the `backend "s3"` block in all three `providers.tf`. Backends cannot read variables, so this is the one place you edit HCL directly.
+3. Per environment and layer, copy `backend.hcl.example` to `backend.hcl` and fill it in. Backends cannot read variables, so bucket, region and profile are supplied at init time.
 4. Per environment, update the header of `create-state-bucket.sh`.
 5. Pick non-overlapping VPC CIDRs. See [CIDR allocation](#cidr-allocation).
-6. Export the Databricks service principal credentials as `TF_VAR_databricks_client_id` and `TF_VAR_databricks_client_secret`. Never commit them.
+6. Put the Databricks service principal credentials in a `secrets.auto.tfvars` next to each `databricks-*` layer, or export them as `TF_VAR_databricks_client_id` and `TF_VAR_databricks_client_secret`. Never commit them.
 7. Follow `terraform/envs/<env>/README.md` and apply the layers in order.
 
 Values that must be filled in are marked `REPLACE_ME` / `REPLACE_WITH_...` in the tfvars
 files, so a forgotten one fails loudly at plan time.
+
+## Keeping deployment values out of git
+
+Everything tracked here is a template: `yourcompany`, `your-aws-profile`, `REPLACE_ME`.
+Nothing in this repo points at a real account, and that is deliberate so it can be
+published and reused.
+
+Terraform loads `*.auto.tfvars` automatically and later files win, so a real deployment
+supplies its own values without editing anything tracked. Three gitignored files per
+layer, none of which can be committed by accident:
+
+| File | Holds | Needed by |
+|-------------------------|--------------------------------------------------------|---------------------|
+| `backend.hcl` | state bucket, region, AWS profile | every layer |
+| `terraform.auto.tfvars` | `company_name`, `aws_profile`, resource IDs, workspace URL and ID, metastore ID | every layer |
+| `secrets.auto.tfvars` | Databricks account ID, SP client ID and secret | `databricks-*` only |
+
+So a layer is initialised and applied like this:
+
+```powershell
+terraform init -backend-config=backend.hcl
+terraform plan
+terraform apply
+```
+
+The upside beyond privacy: the same commit can drive several deployments, and there is no
+diff to review every time someone points it at a different account.
 
 ## CIDR allocation
 

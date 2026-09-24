@@ -37,3 +37,8 @@ output "root_bucket_name" {
   description = "DBFS root bucket this workspace was registered with"
   value       = local.root_bucket
 }
+
+output "databricks_metastore_id" {
+  description = "Unity Catalog metastore attached to this workspace, empty if the assignment was skipped"
+  value       = var.databricks_metastore_id
+}

@@ -1,11 +1,11 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match aws-foundation/terraform.tfvars and databricks-workspace/terraform.tfvars.
-company_name = "rch24company"
+company_name = "yourcompany"
 environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
 aws_region  = "ap-southeast-1"
-aws_profile = "rch"
+aws_profile = "your-aws-profile"
 
 # ─── Databricks account ──────────────────────────────────────────────────────
 databricks_account_id = "REPLACE_WITH_DATABRICKS_ACCOUNT_ID"
@@ -14,7 +14,7 @@ databricks_account_id = "REPLACE_WITH_DATABRICKS_ACCOUNT_ID"
 # Run in ../databricks-workspace:
 #   terraform output databricks_workspace_url
 #   terraform output databricks_workspace_id
-databricks_workspace_url = "https://REPLACE_ME.cloud.databricks.com/"
+databricks_workspace_url = "https://REPLACE_ME.cloud.databricks.com"
 databricks_workspace_id  = "REPLACE_WITH_WORKSPACE_ID"
 
 # OAuth credentials come from the environment:

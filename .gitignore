@@ -21,8 +21,15 @@ crash.*.log
 
 # ─── Sensitive files ──────────────────────────────────────────────────────────
 
-# Override files (may contain secrets)
+# Deployment-specific variable values: credentials, resource IDs, workspace URLs.
+# Terraform loads *.auto.tfvars automatically, so a local deployment keeps working
+# while the tracked terraform.tfvars stays a clean template.
 *.auto.tfvars
+
+# Real backend settings (bucket, region, profile). Backends cannot read variables,
+# so these are supplied at init time with -backend-config=backend.hcl.
+# The tracked backend.hcl.example shows the format.
+backend.hcl
 override.tf
 override.tf.json
 *_override.tf

@@ -7,16 +7,16 @@ for the **dev** environment. The `prod` environment is an identical copy under
 `terraform/envs/prod/` with its own state bucket and CIDR range.
 
 Every resource is named `{company_name}-dbx-{environment}-<suffix>`, so with
-`company_name = "rch24company"` and `environment = "dev"` you get `rch24company-dbx-dev-vpc`,
-`rch24company-dbx-dev-root-bucket`, and so on. The Unity Catalog is the exception: it uses
-underscores (`company_dbx_dev`) because catalog names are SQL identifiers.
+`company_name = "yourcompany"` and `environment = "dev"` you get `yourcompany-dbx-dev-vpc`,
+`yourcompany-dbx-dev-root-bucket`, and so on. The Unity Catalog is the exception: it uses
+underscores (`yourcompany_dbx_dev`) because catalog names are SQL identifiers.
 
 ## Layers
 
 ```
 terraform/envs/dev/
 ├── create-state-bucket.sh          # S3 bucket for Terraform remote state
-├── aws-foundation/                 # Layer 1: VPC, subnets, NAT, SG, DBFS root bucket
+├── aws-foundation/                 # Layer 1: VPC, subnets, NAT, S3 endpoint, SG, DBFS root bucket
 ├── databricks-workspace/           # Layer 2: cross-account IAM, MWS workspace
 └── databricks-catalog/             # Layer 3: catalog bucket, storage credential,
                                     #          external location, catalog, schemas, grants
@@ -49,23 +49,29 @@ Symptom if it's missing: layer 3 fails on `databricks_storage_credential` or
 | `company_name` | Prefix for every resource name         | `company`        |
 | `environment`  | `dev` here, `prod` in the prod folder   | `dev`            |
 | `aws_region`   | Region to deploy in                    | `ap-southeast-1` |
-| `aws_profile`  | AWS CLI profile for the account        | `rch`           |
+| `aws_profile`  | AWS CLI profile for the account        | `your-aws-profile`           |
 | `common_tags`  | Tags on every resource                 | see file         |
 
 `company_name` and `environment` must be identical across the three layers — they are
 what keep the resource names consistent.
 
-### 2. Backend block in each layer's `providers.tf`
+### 2. `backend.hcl` in each layer directory
 
-Backend settings cannot use variables, so they are the one place you edit HCL directly:
+Backends cannot read variables, so bucket, region and profile are supplied at init time
+instead. Copy `backend.hcl.example` from the repo root into each of the three layer
+directories and fill it in. `backend.hcl` is gitignored.
 
 ```hcl
-backend "s3" {
-  bucket  = "rch24company-dbx-dev-terraform-state"
-  key     = "dev/aws-foundation/terraform.tfstate"   # or databricks-workspace / databricks-catalog
-  region  = "ap-southeast-1"
-  profile = "rch"
-}
+bucket  = "yourcompany-dbx-dev-terraform-state"
+region  = "ap-southeast-1"
+profile = "your-aws-profile"
+```
+
+The state key stays in `providers.tf`, since it is structural rather than deployment
+specific. Initialise with:
+
+```powershell
+terraform init -backend-config=backend.hcl
 ```
 
 ### 3. `create-state-bucket.sh` header
@@ -123,7 +129,7 @@ encryption, and tags.
 
 ```powershell
 cd terraform\envs\dev\aws-foundation
-terraform init
+terraform init -backend-config=backend.hcl
 terraform plan
 terraform apply
 terraform output
@@ -139,7 +145,7 @@ Note `vpc_id`, `private_subnet_ids`, `security_group_id`.
 
 ```powershell
 cd terraform\envs\dev\databricks-workspace
-terraform init
+terraform init -backend-config=backend.hcl
 terraform plan
 terraform apply
 terraform output
@@ -153,7 +159,7 @@ terraform output
 
 ```powershell
 cd terraform\envs\dev\databricks-catalog
-terraform init
+terraform init -backend-config=backend.hcl
 terraform plan
 terraform apply
 ```
@@ -189,5 +195,5 @@ cd ..\databricks-workspace                  ; terraform destroy
 cd ..\aws-foundation                        ; terraform destroy
 
 # optionally, the state bucket
-aws s3 rb s3://rch24company-dbx-dev-terraform-state --force --profile rch
+aws s3 rb s3://yourcompany-dbx-dev-terraform-state --force --profile your-aws-profile
 ```

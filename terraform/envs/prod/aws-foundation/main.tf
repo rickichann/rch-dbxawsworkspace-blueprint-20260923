@@ -6,8 +6,9 @@ locals {
     ManagedBy   = "terraform"
   })
 
-  # "ap-southeast-1a" -> "a", so subnet names stay readable in any region
-  az_suffixes = [for az in var.availability_zones : trimprefix(az, var.aws_region)]
+  # Subnet name suffix is "<az index><tier letter>": the number counts AZs from 1,
+  # the letter marks the tier (a = public, b = private). So the first AZ gets
+  # public-subnet-1a and private-subnet-1b, the second gets 2a and 2b.
 }
 
 resource "aws_vpc" "this" {
@@ -37,7 +38,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name = "${local.name}-public-subnet-${local.az_suffixes[count.index]}"
+    Name = "${local.name}-public-subnet-${count.index + 1}a"
     Tier = "public"
   })
 }
@@ -50,7 +51,7 @@ resource "aws_subnet" "private" {
   availability_zone = var.availability_zones[count.index]
 
   tags = merge(local.tags, {
-    Name = "${local.name}-private-subnet-${local.az_suffixes[count.index]}"
+    Name = "${local.name}-private-subnet-${count.index + 1}b"
     Tier = "private"
   })
 }
@@ -145,6 +146,31 @@ resource "aws_security_group" "workspace" {
 
   tags = merge(local.tags, {
     Name = "${local.name}-workspace-sg"
+  })
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S3 Gateway VPC Endpoint
+#
+# Databricks compute in the private subnets talks to S3 constantly: DBFS root,
+# Unity Catalog data, cluster logs, library downloads. Without this endpoint all
+# of that traffic leaves via the NAT gateway and is billed as NAT data
+# processing. A gateway endpoint keeps it on the AWS network, costs nothing, and
+# is the single biggest cost lever in this layer.
+#
+# Gateway endpoints work by adding a prefix-list route, so they attach to route
+# tables rather than subnets. Only the private route table needs it; the public
+# subnets carry nothing but the NAT gateway.
+# ─────────────────────────────────────────────────────────────────────────────
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+
+  tags = merge(local.tags, {
+    Name = "${local.name}-s3-endpoint"
   })
 }
 

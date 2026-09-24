@@ -1,14 +1,12 @@
 terraform {
   required_version = ">= 1.11.0"
 
-  # ─── EDIT ME ───────────────────────────────────────────────────────────────
-  # Backend settings cannot use variables. Replace "company" with the company
-  # short name and make sure the bucket exists (see create-state-bucket.sh).
+  # Partial backend config: bucket, region and profile come from backend.hcl,
+  # which is gitignored. Initialise with:
+  #   terraform init -backend-config=backend.hcl
+  # See backend.hcl.example in the repo root.
   backend "s3" {
-    bucket       = "rch24company-dbx-prod-terraform-state"
     key          = "prod/databricks-workspace/terraform.tfstate"
-    region       = "ap-southeast-1"
-    profile      = "rch"
     use_lockfile = true
   }
 

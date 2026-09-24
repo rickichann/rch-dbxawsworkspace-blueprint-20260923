@@ -75,6 +75,24 @@ variable "root_bucket_name" {
 
 # ─── Tagging ─────────────────────────────────────────────────────────────────
 
+# ─── Unity Catalog ───────────────────────────────────────────────────────────
+
+variable "databricks_metastore_id" {
+  description = <<-EOT
+    Unity Catalog metastore to attach to this workspace. Databricks allows one
+    metastore per region per account, so this template attaches an existing one
+    rather than creating it. Leave empty to skip the assignment, in which case
+    you must attach it manually before the databricks-catalog layer will work.
+
+    List them with:
+      GET https://accounts.cloud.databricks.com/api/2.0/accounts/{account_id}/metastores
+  EOT
+  type        = string
+  default     = ""
+}
+
+# ─── Tagging ─────────────────────────────────────────────────────────────────
+
 variable "common_tags" {
   description = "Tags applied to every resource. Environment and ManagedBy are added automatically."
   type        = map(string)

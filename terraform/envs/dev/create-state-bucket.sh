@@ -4,10 +4,10 @@
 set -euo pipefail
 
 # ─── EDIT ME ─────────────────────────────────────────────────────────────────
-COMPANY_NAME="rch24company"
+COMPANY_NAME="yourcompany"
 ENVIRONMENT="dev"
 REGION="ap-southeast-1"
-PROFILE="rch"
+PROFILE="your-aws-profile"
 # ─────────────────────────────────────────────────────────────────────────────
 
 BUCKET_NAME="${COMPANY_NAME}-dbx-${ENVIRONMENT}-terraform-state"
