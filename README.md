@@ -104,6 +104,7 @@ Destroy in reverse order.
 
 ## Known gaps
 
+- **The committed `.terraform.lock.hcl` files hold `windows_amd64` hashes only.** They were generated on Windows. A colleague on Linux or macOS, or a CI runner, will fail with a missing-checksum error. Fix per layer with `terraform providers lock -platform=windows_amd64 -platform=linux_amd64 -platform=darwin_arm64`, then commit the result.
 - **Locking prevents state corruption, not code drift.** `use_lockfile = true` stops two applies colliding, but nothing stops someone applying uncommitted local code, after which state reflects code that is not in git. Until applies run from CI, that is a convention to agree on, not something the tooling enforces.
 - **A Unity Catalog metastore is a prerequisite, not created here.** Databricks permits one metastore per region per account, so creating it in a per-environment template would conflict on any account that already has one. See the env READMEs.
 - Layers duplicate HCL across `dev` and `prod`. Extracting `terraform/modules/` is the natural next step, but it changes resource addresses, so already-deployed environments would need `terraform state mv`.
