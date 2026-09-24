@@ -6,7 +6,7 @@ locals {
     ManagedBy   = "terraform"
   })
 
-  # "ap-southeast-3a" -> "a", so subnet names stay readable in any region
+  # "ap-southeast-1a" -> "a", so subnet names stay readable in any region
   az_suffixes = [for az in var.availability_zones : trimprefix(az, var.aws_region)]
 }
 

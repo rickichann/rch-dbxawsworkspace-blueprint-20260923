@@ -2,7 +2,7 @@ locals {
   name = "${var.company_name}-dbx-${var.environment}"
 
   # Unity Catalog names are SQL identifiers. Hyphens force users to backtick-quote
-  # them in every query (`company-dbx-dev-catalog`.raw.my_table), so use
+  # them in every query (`rch24company-dbx-dev-catalog`.raw.my_table), so use
   # underscores: company_dbx_dev.
   catalog_name = replace("${var.company_name}_dbx_${var.environment}", "-", "_")
 

@@ -24,7 +24,7 @@ variable "environment" {
 variable "aws_region" {
   description = "AWS region to deploy in"
   type        = string
-  default     = "ap-southeast-3"
+  default     = "ap-southeast-1"
 }
 
 variable "aws_profile" {
@@ -56,7 +56,7 @@ variable "private_subnet_cidrs" {
 variable "availability_zones" {
   description = "AZs to use. Must belong to aws_region and be at least as many as the subnet lists."
   type        = list(string)
-  default     = ["ap-southeast-3a", "ap-southeast-3b"]
+  default     = ["ap-southeast-1a", "ap-southeast-1b"]
 }
 
 # ─── Tagging ─────────────────────────────────────────────────────────────────

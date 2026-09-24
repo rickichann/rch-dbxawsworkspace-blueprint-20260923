@@ -4,9 +4,9 @@
 set -euo pipefail
 
 # ─── EDIT ME ─────────────────────────────────────────────────────────────────
-COMPANY_NAME="company"
+COMPANY_NAME="rch24company"
 ENVIRONMENT="dev"
-REGION="ap-southeast-3"
+REGION="ap-southeast-1"
 PROFILE="rch"
 # ─────────────────────────────────────────────────────────────────────────────
 

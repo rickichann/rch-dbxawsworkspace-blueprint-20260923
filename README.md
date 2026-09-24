@@ -4,7 +4,7 @@ Reusable Terraform template for standing up a Databricks workspace on AWS with a
 customer-managed VPC and Unity Catalog. Ships two environments, `dev` and `prod`,
 each with its own state bucket and its own VPC CIDR.
 
-This checkout is wired to the `rch` AWS CLI profile in `ap-southeast-3`, and both
+This checkout is wired to the `rch` AWS CLI profile in `ap-southeast-1`, and both
 environments target that same AWS account. That is fine for a sandbox. For a real
 deployment, put dev and prod in **separate AWS accounts** with separate profiles, so a
 mistake in dev cannot reach prod — change `aws_profile` in the six `terraform.tfvars`
@@ -32,16 +32,16 @@ The two environments share no state and no resources. Editing one cannot affect 
 
 ## Naming convention
 
-With `company_name = "company"` and `environment = "prod"`:
+With `company_name = "rch24company"` and `environment = "prod"`:
 
 | Thing                | Pattern                                            | Result                                  |
 |----------------------|----------------------------------------------------|-----------------------------------------|
-| Resource prefix      | `{company_name}-dbx-{environment}`                 | `company-dbx-prod`                      |
-| DBFS root bucket     | `{prefix}-root-bucket`                             | `company-dbx-prod-root-bucket`          |
-| Catalog data bucket  | `{prefix}-catalog-data`                            | `company-dbx-prod-catalog-data`         |
+| Resource prefix      | `{company_name}-dbx-{environment}`                 | `rch24company-dbx-prod`                      |
+| DBFS root bucket     | `{prefix}-root-bucket`                             | `rch24company-dbx-prod-root-bucket`          |
+| Catalog data bucket  | `{prefix}-catalog-data`                            | `rch24company-dbx-prod-catalog-data`         |
 | Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `company_dbx_prod`                      |
-| Workspace name       | `{prefix}`                                         | `company-dbx-prod`                      |
-| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `company-dbx-prod-terraform-state`      |
+| Workspace name       | `{prefix}`                                         | `rch24company-dbx-prod`                      |
+| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `rch24company-dbx-prod-terraform-state`      |
 | State key            | `{environment}/{layer}/terraform.tfstate`          | `prod/aws-foundation/terraform.tfstate` |
 
 Replace `company` with the real short name and every resource above follows.
@@ -79,7 +79,7 @@ Public subnets only carry the NAT gateway, so a `/24` is plenty. Private subnets
 Databricks compute, and their size is the hard ceiling on concurrent cluster nodes — a `/20`
 gives roughly 4,000 usable addresses per AZ.
 
-Availability zones are shared between environments (`ap-southeast-3a`, `ap-southeast-3b`).
+Availability zones are shared between environments (`ap-southeast-1a`, `ap-southeast-1b`).
 That is fine: AZs are physical locations, not address space.
 
 **Why the ranges must not overlap.** Two VPCs using identical ranges work fine while they

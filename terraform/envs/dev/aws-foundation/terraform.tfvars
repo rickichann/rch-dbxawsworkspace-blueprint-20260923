@@ -1,10 +1,10 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Everything is named "${company_name}-dbx-${environment}-<suffix>".
-company_name = "company"
+company_name = "rch24company"
 environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
-aws_region  = "ap-southeast-3"
+aws_region  = "ap-southeast-1"
 aws_profile = "rch"
 
 # ─── Networking (dev) ────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ public_subnet_cidrs = ["10.175.0.0/24", "10.175.1.0/24"]
 private_subnet_cidrs = ["10.175.16.0/20", "10.175.32.0/20"]
 
 # One AZ per subnet, in the same order as the lists above.
-availability_zones = ["ap-southeast-3a", "ap-southeast-3b"]
+availability_zones = ["ap-southeast-1a", "ap-southeast-1b"]
 
 # ─── Tagging ─────────────────────────────────────────────────────────────────
 # Environment and ManagedBy are added automatically.

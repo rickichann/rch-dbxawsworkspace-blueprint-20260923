@@ -5,9 +5,9 @@ terraform {
   # Backend settings cannot use variables. Replace "company" with the company
   # short name and make sure the bucket exists (see create-state-bucket.sh).
   backend "s3" {
-    bucket       = "company-dbx-prod-terraform-state"
+    bucket       = "rch24company-dbx-prod-terraform-state"
     key          = "prod/databricks-catalog/terraform.tfstate"
-    region       = "ap-southeast-3"
+    region       = "ap-southeast-1"
     profile      = "rch"
     use_lockfile = true
   }

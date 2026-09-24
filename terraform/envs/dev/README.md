@@ -7,8 +7,8 @@ for the **dev** environment. The `prod` environment is an identical copy under
 `terraform/envs/prod/` with its own state bucket and CIDR range.
 
 Every resource is named `{company_name}-dbx-{environment}-<suffix>`, so with
-`company_name = "company"` and `environment = "dev"` you get `company-dbx-dev-vpc`,
-`company-dbx-dev-root-bucket`, and so on. The Unity Catalog is the exception: it uses
+`company_name = "rch24company"` and `environment = "dev"` you get `rch24company-dbx-dev-vpc`,
+`rch24company-dbx-dev-root-bucket`, and so on. The Unity Catalog is the exception: it uses
 underscores (`company_dbx_dev`) because catalog names are SQL identifiers.
 
 ## Layers
@@ -48,7 +48,7 @@ Symptom if it's missing: layer 3 fails on `databricks_storage_credential` or
 |----------------|----------------------------------------|------------------|
 | `company_name` | Prefix for every resource name         | `company`        |
 | `environment`  | `dev` here, `prod` in the prod folder   | `dev`            |
-| `aws_region`   | Region to deploy in                    | `ap-southeast-3` |
+| `aws_region`   | Region to deploy in                    | `ap-southeast-1` |
 | `aws_profile`  | AWS CLI profile for the account        | `rch`           |
 | `common_tags`  | Tags on every resource                 | see file         |
 
@@ -61,9 +61,9 @@ Backend settings cannot use variables, so they are the one place you edit HCL di
 
 ```hcl
 backend "s3" {
-  bucket  = "company-dbx-dev-terraform-state"
+  bucket  = "rch24company-dbx-dev-terraform-state"
   key     = "dev/aws-foundation/terraform.tfstate"   # or databricks-workspace / databricks-catalog
-  region  = "ap-southeast-3"
+  region  = "ap-southeast-1"
   profile = "rch"
 }
 ```
@@ -189,5 +189,5 @@ cd ..\databricks-workspace                  ; terraform destroy
 cd ..\aws-foundation                        ; terraform destroy
 
 # optionally, the state bucket
-aws s3 rb s3://company-dbx-dev-terraform-state --force --profile rch
+aws s3 rb s3://rch24company-dbx-dev-terraform-state --force --profile rch
 ```
