@@ -36,21 +36,18 @@ variable "aws_profile" {
 # ─── Networking ──────────────────────────────────────────────────────────────
 
 variable "vpc_cidr" {
-  description = "CIDR for the VPC. Must not overlap with other environments if you plan to peer them."
+  description = "CIDR for the VPC. Expected size /16. No default: supply it per deployment so nothing is created under a placeholder range."
   type        = string
-  default     = "10.174.0.0/16"
 }
 
 variable "public_subnet_cidrs" {
-  description = "CIDRs for public subnets (NAT gateway lives in the first one)"
+  description = "CIDRs for public subnets, one per AZ. Expected size /24. These carry the NAT gateway only."
   type        = list(string)
-  default     = ["10.174.0.0/24", "10.174.1.0/24"]
 }
 
 variable "private_subnet_cidrs" {
-  description = "CIDRs for private subnets (Databricks compute). Databricks requires at least two, in different AZs."
+  description = "CIDRs for private subnets, one per AZ. Expected size /20. These carry Databricks compute, so their size caps concurrent cluster nodes. Databricks requires at least two, in different AZs."
   type        = list(string)
-  default     = ["10.174.16.0/20", "10.174.32.0/20"]
 }
 
 variable "availability_zones" {

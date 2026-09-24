@@ -7,9 +7,9 @@ for the **prod** environment. The `dev` environment is an identical copy under
 `terraform/envs/dev/` with its own state bucket and CIDR range.
 
 Every resource is named `{company_name}-dbx-{environment}-<suffix>`, so with
-`company_name = "yourcompany"` and `environment = "prod"` you get `yourcompany-dbx-prod-vpc`,
-`yourcompany-dbx-prod-root-bucket`, and so on. The Unity Catalog is the exception: it uses
-underscores (`yourcompany_dbx_prod`) because catalog names are SQL identifiers.
+`company_name = "rch24company"` and `environment = "prod"` you get `rch24company-dbx-prod-vpc`,
+`rch24company-dbx-prod-root-bucket`, and so on. The Unity Catalog is the exception: it uses
+underscores (`rch24company_dbx_prod`) because catalog names are SQL identifiers.
 
 ## Layers
 
@@ -62,7 +62,7 @@ instead. Copy `backend.hcl.example` from the repo root into each of the three la
 directories and fill it in. `backend.hcl` is gitignored.
 
 ```hcl
-bucket  = "yourcompany-dbx-prod-terraform-state"
+bucket  = "rch24company-dbx-prod-terraform-state"
 region  = "ap-southeast-1"
 profile = "your-aws-profile"
 ```
@@ -82,8 +82,10 @@ Set `COMPANY_NAME`, `ENVIRONMENT`, `REGION`, `PROFILE`. The bucket name is deriv
 ### 4. Network ranges, in `aws-foundation/terraform.tfvars`
 
 `vpc_cidr`, `public_subnet_cidrs`, `private_subnet_cidrs`, `availability_zones`.
-Defaults: prod `10.174.0.0/16`, dev `10.175.0.0/16`. Keep them non-overlapping if you
-ever want to peer the two, and make sure the AZs belong to `aws_region`.
+Sizes expected by this blueprint: VPC `/16`, public subnets `/24`, private subnets `/20`.
+The tracked tfvars carry `REPLACE_ME/16` style placeholders; put the real ranges in the
+gitignored `terraform.auto.tfvars`. Keep them non-overlapping with the other environment
+and anything you might peer with, and make sure the AZs belong to `aws_region`.
 
 ### 5. Cross-layer values
 
@@ -195,5 +197,5 @@ cd ..\databricks-workspace                  ; terraform destroy
 cd ..\aws-foundation                        ; terraform destroy
 
 # optionally, the state bucket
-aws s3 rb s3://yourcompany-dbx-prod-terraform-state --force --profile your-aws-profile
+aws s3 rb s3://rch24company-dbx-prod-terraform-state --force --profile your-aws-profile
 ```

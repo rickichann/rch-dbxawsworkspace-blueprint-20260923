@@ -14,7 +14,7 @@ loudly instead of silently picking an account.
 
 Every name is derived from two variables, `company_name` and `environment`, so
 re-pointing the whole stack at a different company is a two-value change per layer.
-This checkout has them set to `yourcompany` and `dev` / `prod`.
+This checkout has them set to `rch24company` and `dev` / `prod`.
 
 ```
 terraform/envs/
@@ -33,20 +33,20 @@ The two environments share no state and no resources. Editing one cannot affect 
 
 ## Naming convention
 
-With `company_name = "yourcompany"` and `environment = "prod"`:
+With `company_name = "rch24company"` and `environment = "prod"`:
 
 | Thing                | Pattern                                            | Result                                  |
 |----------------------|----------------------------------------------------|-----------------------------------------|
-| Resource prefix      | `{company_name}-dbx-{environment}`                 | `yourcompany-dbx-prod`                 |
-| Public subnet, AZ 1  | `{prefix}-public-subnet-1a`                        | `yourcompany-dbx-prod-public-subnet-1a` |
-| Private subnet, AZ 1 | `{prefix}-private-subnet-1b`                       | `yourcompany-dbx-prod-private-subnet-1b` |
-| Public subnet, AZ 2  | `{prefix}-public-subnet-2a`                        | `yourcompany-dbx-prod-public-subnet-2a` |
-| Private subnet, AZ 2 | `{prefix}-private-subnet-2b`                       | `yourcompany-dbx-prod-private-subnet-2b` |
-| DBFS root bucket     | `{prefix}-root-bucket`                             | `yourcompany-dbx-prod-root-bucket`          |
-| Catalog data bucket  | `{prefix}-catalog-data`                            | `yourcompany-dbx-prod-catalog-data`         |
-| Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `yourcompany_dbx_prod`                 |
-| Workspace name       | `{prefix}`                                         | `yourcompany-dbx-prod`                      |
-| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `yourcompany-dbx-prod-terraform-state`      |
+| Resource prefix      | `{company_name}-dbx-{environment}`                 | `rch24company-dbx-prod`                 |
+| Public subnet, AZ 1  | `{prefix}-public-subnet-1a`                        | `rch24company-dbx-prod-public-subnet-1a` |
+| Private subnet, AZ 1 | `{prefix}-private-subnet-1b`                       | `rch24company-dbx-prod-private-subnet-1b` |
+| Public subnet, AZ 2  | `{prefix}-public-subnet-2a`                        | `rch24company-dbx-prod-public-subnet-2a` |
+| Private subnet, AZ 2 | `{prefix}-private-subnet-2b`                       | `rch24company-dbx-prod-private-subnet-2b` |
+| DBFS root bucket     | `{prefix}-root-bucket`                             | `rch24company-dbx-prod-root-bucket`          |
+| Catalog data bucket  | `{prefix}-catalog-data`                            | `rch24company-dbx-prod-catalog-data`         |
+| Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `rch24company_dbx_prod`                 |
+| Workspace name       | `{prefix}`                                         | `rch24company-dbx-prod`                      |
+| State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `rch24company-dbx-prod-terraform-state`      |
 | State key            | `{environment}/{layer}/terraform.tfstate`          | `prod/aws-foundation/terraform.tfstate` |
 
 Change `company_name` and every resource above follows.
@@ -61,7 +61,7 @@ Note the letter is the tier, not the AWS zone letter. `private-subnet-1b` sits i
 or the `availability_zone` attribute if you need the physical zone.
 
 The Unity Catalog is the one exception to the hyphen convention: catalog names are SQL
-identifiers, and hyphens would force `` `yourcompany-dbx-prod` `` backticks into every
+identifiers, and hyphens would force `` `rch24company-dbx-prod` `` backticks into every
 query.
 
 ## Using the template for a new company
@@ -79,7 +79,7 @@ files, so a forgotten one fails loudly at plan time.
 
 ## Keeping deployment values out of git
 
-Everything tracked here is a template: `yourcompany`, `your-aws-profile`, `REPLACE_ME`.
+Everything tracked here is a template: `rch24company`, `your-aws-profile`, `REPLACE_ME`.
 Nothing in this repo points at a real account, and that is deliberate so it can be
 published and reused.
 
@@ -110,15 +110,15 @@ Each environment has its own VPC with its own address range, set in that environ
 `aws-foundation/terraform.tfvars`. Only the second octet differs, which keeps the two easy
 to tell apart in route tables and flow logs.
 
-|                      | prod             | dev              |
-|----------------------|------------------|------------------|
-| VPC                  | `10.174.0.0/16`  | `10.175.0.0/16`  |
-| Public subnet, AZ a  | `10.174.0.0/24`  | `10.175.0.0/24`  |
-| Public subnet, AZ b  | `10.174.1.0/24`  | `10.175.1.0/24`  |
-| Private subnet, AZ a | `10.174.16.0/20` | `10.175.16.0/20` |
-| Private subnet, AZ b | `10.174.32.0/20` | `10.175.32.0/20` |
-| VPC addresses        | 65,536           | 65,536           |
-| Per private subnet   | 4,096            | 4,096            |
+Only the prefix sizes are prescribed. The actual ranges are deployment specific and live
+in the gitignored `terraform.auto.tfvars`, which is why the tracked tfvars show
+`REPLACE_ME/16` and friends.
+
+| Purpose        | Size  | Count       | Addresses | Carries                                   |
+|----------------|-------|-------------|-----------|-------------------------------------------|
+| VPC            | `/16` | 1 per env   | 65,536    | everything below                          |
+| Public subnet  | `/24` | 1 per AZ    | 256       | NAT gateway only                          |
+| Private subnet | `/20` | 1 per AZ    | 4,096     | Databricks compute                        |
 
 Public subnets only carry the NAT gateway, so a `/24` is plenty. Private subnets carry
 Databricks compute, and their size is the hard ceiling on concurrent cluster nodes — a `/20`
@@ -134,8 +134,13 @@ address that exists in both. AWS rejects peering between overlapping VPCs outrig
 only fix is renumbering, which means recreating the subnets, the Databricks network config,
 and the workspace itself.
 
-Adding a third environment? Take the next free second octet, `10.176.0.0/16`, and check it
-against existing VPCs and on-prem ranges in the target account before applying.
+Adding an environment? Pick the next free block of the same size and check it against the
+existing VPCs and on-prem ranges in the target account first:
+
+```bash
+aws ec2 describe-vpcs --region <region> --profile <profile> \
+  --query "Vpcs[].{id:VpcId,cidr:CidrBlock}" --output table
+```
 
 ## Apply order
 

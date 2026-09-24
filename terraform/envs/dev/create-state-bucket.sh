@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # ─── EDIT ME ─────────────────────────────────────────────────────────────────
-COMPANY_NAME="yourcompany"
+COMPANY_NAME="rch24company"
 ENVIRONMENT="dev"
 REGION="ap-southeast-1"
 PROFILE="your-aws-profile"

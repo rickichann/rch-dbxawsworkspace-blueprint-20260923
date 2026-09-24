@@ -1,6 +1,6 @@
 # ─── Identity / naming ───────────────────────────────────────────────────────
 # Must match aws-foundation/terraform.tfvars and databricks-workspace/terraform.tfvars.
-company_name = "yourcompany"
+company_name = "rch24company"
 environment  = "dev"
 
 # ─── AWS ─────────────────────────────────────────────────────────────────────
