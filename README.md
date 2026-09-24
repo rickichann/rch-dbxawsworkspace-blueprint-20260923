@@ -31,7 +31,7 @@ With `company_name = "company"` and `environment = "prod"`:
 | Resource prefix      | `{company_name}-dbx-{environment}`                 | `company-dbx-prod`                      |
 | DBFS root bucket     | `{prefix}-root-bucket`                             | `company-dbx-prod-root-bucket`          |
 | Catalog data bucket  | `{prefix}-catalog-data`                            | `company-dbx-prod-catalog-data`         |
-| Unity Catalog        | `{prefix}-catalog`                                 | `company-dbx-prod-catalog`              |
+| Unity Catalog        | `{company_name}_dbx_{environment}` (underscores)    | `company_dbx_prod`                      |
 | Workspace name       | `{prefix}`                                         | `company-dbx-prod`                      |
 | State bucket         | `{company_name}-dbx-{environment}-terraform-state` | `company-dbx-prod-terraform-state`      |
 | State key            | `{environment}/{layer}/terraform.tfstate`          | `prod/aws-foundation/terraform.tfstate` |
@@ -96,6 +96,7 @@ Destroy in reverse order.
 
 ## Known gaps
 
-- No state locking. Add a DynamoDB lock table, or Terraform >= 1.10 `use_lockfile`, if more than one person applies.
+- **No state locking.** Concurrent applies against the same layer can corrupt state. The fix is `use_lockfile = true` in each `backend "s3"` block, which needs Terraform >= 1.11. Do not add a DynamoDB table: the `dynamodb_*` backend arguments are deprecated and slated for removal now that S3 supports native locking.
+- **A Unity Catalog metastore is a prerequisite, not created here.** Databricks permits one metastore per region per account, so creating it in a per-environment template would conflict on any account that already has one. See the env READMEs.
 - Layers duplicate HCL across `dev` and `prod`. Extracting `terraform/modules/` is the natural next step, but it changes resource addresses, so already-deployed environments would need `terraform state mv`.
 - The Databricks-owned AWS account that assumes the Unity Catalog data access role is `414351767826`, correct for commercial regions. Override `databricks_aws_account_id` if your region differs.

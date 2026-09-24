@@ -8,8 +8,9 @@
 # Terraform working directory (cached providers, modules)
 .terraform/
 
-# Lock file (regenerated on terraform init)
-.terraform.lock.hcl
+# NOTE: .terraform.lock.hcl is deliberately NOT ignored. It pins provider
+# versions and checksums so every engineer and every CI run resolves the same
+# providers. Commit it. Run `terraform providers lock` to add other platforms.
 
 # Plan files
 *.tfplan

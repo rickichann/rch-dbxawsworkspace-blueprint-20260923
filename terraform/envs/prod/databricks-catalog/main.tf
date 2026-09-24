@@ -1,6 +1,12 @@
 locals {
-  name           = "${var.company_name}-dbx-${var.environment}"
-  catalog_name   = "${var.company_name}-dbx-${var.environment}-catalog"
+  name = "${var.company_name}-dbx-${var.environment}"
+
+  # Unity Catalog names are SQL identifiers. Hyphens force users to backtick-quote
+  # them in every query (`company-dbx-prod-catalog`.raw.my_table), so use
+  # underscores: company_dbx_prod.
+  catalog_name = replace("${var.company_name}_dbx_${var.environment}", "-", "_")
+
+  # S3 bucket names cannot contain underscores, so this one keeps hyphens.
   catalog_bucket = "${var.company_name}-dbx-${var.environment}-catalog-data"
 
   tags = merge(var.common_tags, {
@@ -167,6 +173,11 @@ resource "databricks_catalog" "this" {
   name         = local.catalog_name
   comment      = "Unity Catalog for ${local.name}"
   storage_root = "s3://${aws_s3_bucket.catalog_data.bucket}/unity-catalog"
+
+  # ISOLATED restricts the catalog to the workspaces bound below. Without this
+  # the catalog is visible to every workspace sharing the metastore and the
+  # databricks_workspace_binding resource has no effect.
+  isolation_mode = "ISOLATED"
 
   properties = {
     purpose = var.environment

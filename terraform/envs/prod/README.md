@@ -8,7 +8,8 @@ for the **prod** environment. The `dev` environment is an identical copy under
 
 Every resource is named `{company_name}-dbx-{environment}-<suffix>`, so with
 `company_name = "company"` and `environment = "prod"` you get `company-dbx-prod-vpc`,
-`company-dbx-prod-root-bucket`, `company-dbx-prod-catalog`, and so on.
+`company-dbx-prod-root-bucket`, and so on. The Unity Catalog is the exception: it uses
+underscores (`company_dbx_prod`) because catalog names are SQL identifiers.
 
 ## Layers
 
@@ -29,6 +30,15 @@ from layer 1, layer 3 consumes outputs from layer 2.
 - Terraform >= 1.5.0
 - AWS CLI with a named profile for the target account
 - A Databricks account service principal with the **Account Admin** role (OAuth client ID + secret)
+- **A Unity Catalog metastore in the workspace's region, assigned to the workspace.** Layer 3 creates a catalog *inside* an existing metastore; it does not create the metastore. Databricks allows one metastore per region per account, so this is deliberately left outside the template — creating one here would conflict on any account that already has it.
+
+Check before running layer 3: account console → **Catalog** → **Metastores**. If the
+region has no metastore, create one and assign it to the workspace, then continue. Newer
+Databricks accounts often get one created automatically with the first workspace in a
+region, which is why this can pass unnoticed until you deploy into a fresh region.
+
+Symptom if it's missing: layer 3 fails on `databricks_storage_credential` or
+`databricks_catalog` with a metastore-not-found or permission error.
 
 ## What you edit
 
@@ -159,7 +169,7 @@ cd terraform\envs\prod\databricks-workspace
 terraform output databricks_workspace_url
 ```
 
-Open the URL and check Catalog Explorer for `{company_name}-dbx-prod-catalog` and its schemas.
+Open the URL and check Catalog Explorer for `{company_name}_dbx_prod` and its schemas.
 
 ## Notes
 
