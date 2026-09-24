@@ -27,7 +27,7 @@ from layer 1, layer 3 consumes outputs from layer 2.
 
 ## Prerequisites
 
-- Terraform >= 1.5.0
+- Terraform >= 1.11 (S3-native state locking needs it). Check with ``terraform version``.
 - AWS CLI with a named profile for the target account
 - A Databricks account service principal with the **Account Admin** role (OAuth client ID + secret)
 - **A Unity Catalog metastore in the workspace's region, assigned to the workspace.** Layer 3 creates a catalog *inside* an existing metastore; it does not create the metastore. Databricks allows one metastore per region per account, so this is deliberately left outside the template — creating one here would conflict on any account that already has it.
@@ -175,7 +175,7 @@ Open the URL and check Catalog Explorer for `{company_name}_dbx_prod` and its sc
 
 - **IAM propagation**: layers 2 and 3 include a 20s `time_sleep` for IAM eventual consistency. If you still hit role assumption errors, wait a minute and re-apply.
 - **S3 bucket names are global**: if `{company_name}-dbx-{environment}-root-bucket` is taken, pick a different `company_name`.
-- **State locking is not enabled**: only one person should apply at a time. Add a DynamoDB lock table if you need it.
+- **State locking** is on via `use_lockfile = true`. Terraform writes a `<key>.tflock` object next to the state file for the duration of a run, so a second concurrent apply fails instead of overwriting state. No DynamoDB table is involved; those backend arguments are deprecated. If a run is killed mid-apply and the lock is left behind, confirm nobody else is running, then `terraform force-unlock <LOCK_ID>`. Use `terraform apply -lock-timeout=5m` if you would rather wait for a lock than fail immediately.
 - **Secrets**: `databricks_client_id` / `databricks_client_secret` stay in environment variables. `.gitignore` also excludes `*.auto.tfvars` and `output.txt`.
 - **Catalog visibility**: the catalog is owned by the service principal that created it; grants for `account users` are applied so workspace users can read it.
 

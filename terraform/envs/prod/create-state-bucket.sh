@@ -74,8 +74,13 @@ aws s3api put-bucket-tagging \
   --profile "${PROFILE}"
 
 echo "Done. State bucket '${BUCKET_NAME}' is ready."
+echo "State locking needs no extra setup: Terraform writes a <key>.tflock object"
+echo "into this same bucket during a run. Whoever applies needs s3:PutObject and"
+echo "s3:DeleteObject on it, which they already have for the state file itself."
+echo ""
 echo "Use it in each layer's providers.tf backend block:"
 echo "  bucket  = \"${BUCKET_NAME}\""
 echo "  key     = \"${ENVIRONMENT}/<layer>/terraform.tfstate\""
 echo "  region  = \"${REGION}\""
 echo "  profile = \"${PROFILE}\""
+echo "  use_lockfile = true"

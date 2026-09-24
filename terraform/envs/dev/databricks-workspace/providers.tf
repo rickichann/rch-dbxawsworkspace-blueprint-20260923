@@ -1,14 +1,15 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.11.0"
 
   # ─── EDIT ME ───────────────────────────────────────────────────────────────
   # Backend settings cannot use variables. Replace "company" with the company
   # short name and make sure the bucket exists (see create-state-bucket.sh).
   backend "s3" {
-    bucket  = "company-dbx-dev-terraform-state"
-    key     = "dev/databricks-workspace/terraform.tfstate"
-    region  = "ap-southeast-3"
-    profile = "company-dev"
+    bucket       = "company-dbx-dev-terraform-state"
+    key          = "dev/databricks-workspace/terraform.tfstate"
+    region       = "ap-southeast-3"
+    profile      = "company-dev"
+    use_lockfile = true
   }
 
   required_providers {

@@ -96,7 +96,7 @@ Destroy in reverse order.
 
 ## Known gaps
 
-- **No state locking.** Concurrent applies against the same layer can corrupt state. The fix is `use_lockfile = true` in each `backend "s3"` block, which needs Terraform >= 1.11. Do not add a DynamoDB table: the `dynamodb_*` backend arguments are deprecated and slated for removal now that S3 supports native locking.
+- **Locking prevents state corruption, not code drift.** `use_lockfile = true` stops two applies colliding, but nothing stops someone applying uncommitted local code, after which state reflects code that is not in git. Until applies run from CI, that is a convention to agree on, not something the tooling enforces.
 - **A Unity Catalog metastore is a prerequisite, not created here.** Databricks permits one metastore per region per account, so creating it in a per-environment template would conflict on any account that already has one. See the env READMEs.
 - Layers duplicate HCL across `dev` and `prod`. Extracting `terraform/modules/` is the natural next step, but it changes resource addresses, so already-deployed environments would need `terraform state mv`.
 - The Databricks-owned AWS account that assumes the Unity Catalog data access role is `414351767826`, correct for commercial regions. Override `databricks_aws_account_id` if your region differs.
